@@ -22,10 +22,12 @@ const starWarsChars = [
 //   return ConfiguredComponent
 // };
 
-// Cleaner syntax less verbose. 
+// Cleaner syntax less verbose.
 const withTransformProps = mapperFunc =>
   BaseComponent => baseProps => {
     const transformedProps = mapperFunc(baseProps)
+    console.log('baseProps', baseProps)
+    console.log('transformed props', transformedProps)
     return <BaseComponent {...transformedProps} />
   }
 
@@ -60,13 +62,11 @@ const withSimpleState = defaultState => BaseComponent => {
     }
   }
 };
-const renderDisplayList = ({ list, stateValue, stateHandler })=> {
-  const filteredList = list.filter(char => char.side === stateValue)
-  const otherSide = stateValue === 'dark' ? 'light' : 'dark'
+const renderDisplayList = ({ list, stateHandler, otherSide }) => {
   return (
     <div>
       <button onClick={() => stateHandler(otherSide)}>Switch</button>
-      {filteredList.map(char =>
+      {list.map(char =>
         <div key={char.name}>
           <div>Character: {char.name}</div>
           <div>Side: {char.side}</div>
@@ -75,7 +75,16 @@ const renderDisplayList = ({ list, stateValue, stateHandler })=> {
     </div>
   )
 };
-const FilteredList = withSimpleState('dark')(renderDisplayList);
+const FilteredList = withTransformProps(({ list, stateValue, stateHandler }) => {
+  const otherSide = stateValue === 'dark' ? 'light' : 'dark'
+  return {
+    stateHandler,
+    otherSide,
+    list: list.filter(char => char.side === stateValue)
+  }
+})(renderDisplayList);
+
+const ToggeableFilteredList = withSimpleState('dark')(FilteredList);
 
 class App extends Component {
   render() {
@@ -85,8 +94,7 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to Higher Order</h1>
         </header>
-       <FilteredList list={starWarsChars} />
-        <FunctionalfilteredList side="dark" list={starWarsChars}  />
+        <ToggeableFilteredList list={starWarsChars}/>
       </div>
     );
   }
